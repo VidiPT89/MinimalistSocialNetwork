@@ -1,10 +1,11 @@
-import type { Comment, Like, Post, User } from '@prisma/client'
+import type { Bookmark, Comment, Like, Post, User } from '@prisma/client'
 import type { PostCard, PublicUser } from './types'
 
 type Author = User
 type MappedPost = Post & {
   author: Author
   likes: Like[]
+  bookmarks: Bookmark[]
   comments: (Comment & { user: Author })[]
   _count: { likes: number; comments: number; reposts: number }
   repostOf: (Post & { author: Author }) | null
@@ -31,6 +32,7 @@ export function mapPost(post: MappedPost, viewerId?: string | null): PostCard {
     commentCount: post._count.comments,
     repostCount: post._count.reposts,
     liked: viewerId ? post.likes.some((item) => item.userId === viewerId) : false,
+    saved: viewerId ? post.bookmarks.some((item) => item.userId === viewerId) : false,
     author: publicUser(post.author),
     original: post.repostOf
       ? {
@@ -52,6 +54,7 @@ export function mapPost(post: MappedPost, viewerId?: string | null): PostCard {
 export const postInclude = {
   author: true,
   likes: true,
+  bookmarks: true,
   comments: { include: { user: true }, orderBy: { createdAt: 'asc' as const } },
   _count: { select: { likes: true, comments: true, reposts: true } },
   repostOf: { include: { author: true } },

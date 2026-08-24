@@ -5,6 +5,7 @@ import { useSession } from '@/i18n/SessionProvider'
 import { useFioLive } from '@/lib/live'
 import { unreadCount } from '@/lib/social'
 import { trpc } from '@/trpc/client'
+import Link from 'next/link'
 import { useCallback, useState } from 'react'
 
 const labels = {
@@ -49,8 +50,13 @@ export function NoticeBell() {
           <ul className="max-h-80 space-y-2 overflow-auto">
             {list.data?.map((item) => (
               <li key={item.id} className={item.read ? 'opacity-55' : ''}>
-                <span className="text-[#ff7a00]">{item.actor.name}</span>{' '}
-                {t[labels[item.kind as keyof typeof labels] ?? 'noticeLike']}
+                <Link
+                  href={item.kind === 'message' ? `/messages?with=${item.actor.handle}` : `/u/${item.actor.handle}`}
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="text-[#ff7a00]">{item.actor.name}</span>{' '}
+                  {t[labels[item.kind as keyof typeof labels] ?? 'noticeLike']}
+                </Link>
               </li>
             ))}
           </ul>

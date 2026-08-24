@@ -5,11 +5,14 @@ import { useLocale } from '@/i18n/LocaleProvider'
 import { useSession } from '@/i18n/SessionProvider'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 export function SiteChrome({ children }: { children: ReactNode }) {
   const { t, locale, setLocale } = useLocale()
   const { data, refresh } = useSession()
+  const pathname = usePathname()
+  const router = useRouter()
 
   async function signIn(userId: string) {
     await fetch('/api/session', {
@@ -18,6 +21,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
       body: JSON.stringify({ userId }),
     })
     await refresh()
+    router.push('/feed')
   }
 
   async function signOut() {
@@ -35,12 +39,17 @@ export function SiteChrome({ children }: { children: ReactNode }) {
           <nav className="flex flex-wrap items-center gap-2 text-sm">
             {data.user ? (
               <>
-                <Link href="/feed" className="btn-ghost">
+                <Link href="/feed" className={pathname === '/feed' ? 'btn' : 'btn-ghost'}>
                   {t.feed}
                 </Link>
-                <Link href="/messages" className="btn-ghost">
+                <Link href="/messages" className={pathname === '/messages' ? 'btn' : 'btn-ghost'}>
                   {t.messages}
                 </Link>
+                {data.user ? (
+                  <Link href={`/u/${data.user.handle}`} className={pathname === `/u/${data.user.handle}` ? 'btn' : 'btn-ghost'}>
+                    {t.me}
+                  </Link>
+                ) : null}
                 <NoticeBell />
                 <button type="button" className="btn-ghost" onClick={() => void signOut()}>
                   {t.signOut}

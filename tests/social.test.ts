@@ -4,7 +4,10 @@ import {
   canFollow,
   clipBody,
   followingAuthorIds,
+  matchesQuery,
+  remainingChars,
   threadKey,
+  timeAgo,
   toggleMember,
   unreadCount,
 } from '../src/lib/social'
@@ -32,4 +35,16 @@ test('unread count and clipped post body', () => {
   assert.equal(unreadCount([{ read: true }, { read: false }, { read: false }]), 2)
   assert.equal(clipBody('  olá  '), 'olá')
   assert.equal(clipBody('x'.repeat(300)).length, 280)
+})
+
+test('search matches names and remaining characters stay honest', () => {
+  assert.equal(matchesQuery('Fio de Inês', 'ines'), true)
+  assert.equal(matchesQuery('Fio de Inês', 'nuno'), false)
+  assert.equal(remainingChars('abc'), 277)
+})
+
+test('relative time uses the viewer locale', () => {
+  const now = Date.parse('2026-08-24T12:00:00.000Z')
+  assert.equal(timeAgo('2026-08-24T11:59:00.000Z', now, 'pt'), 'há 1 min')
+  assert.equal(timeAgo('2026-08-24T10:00:00.000Z', now, 'en'), '2h')
 })

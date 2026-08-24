@@ -106,12 +106,38 @@ button {
   color: #050505;
   font-weight: 700;
   padding: 0.55rem 1.1rem;
+  transition: transform 200ms ease, filter 200ms ease;
+}
+
+.btn:hover {
+  filter: brightness(1.08);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.45;
 }
 
 .btn-ghost {
   border-radius: 999px;
   border: 1px solid rgba(244, 230, 200, 0.25);
   padding: 0.45rem 0.9rem;
+  transition: border-color 200ms ease, background 200ms ease;
+}
+
+.btn-ghost:hover {
+  border-color: #ff7a00;
+  background: rgba(255, 122, 0, 0.08);
+}
+
+.field:focus,
+.btn:focus-visible,
+.btn-ghost:focus-visible {
+  outline: 2px solid #ffaa00;
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {

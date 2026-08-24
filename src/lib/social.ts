@@ -23,3 +23,30 @@ export function clipBody(body: string, max = 280) {
   if (!text) return ''
   return text.slice(0, max)
 }
+
+export function remainingChars(body: string, max = 280) {
+  return max - body.length
+}
+
+function fold(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+}
+
+export function matchesQuery(haystack: string, q: string) {
+  const needle = fold(q.trim())
+  if (!needle) return true
+  return fold(haystack).includes(needle)
+}
+
+export function timeAgo(iso: string, now = Date.now(), locale: 'pt' | 'en' = 'pt') {
+  const minutes = Math.floor(Math.max(0, now - new Date(iso).getTime()) / 60000)
+  if (minutes < 1) return locale === 'pt' ? 'agora' : 'now'
+  if (minutes < 60) return locale === 'pt' ? `há ${minutes} min` : `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return locale === 'pt' ? `há ${hours} h` : `${hours}h`
+  const days = Math.floor(hours / 24)
+  return locale === 'pt' ? `há ${days} d` : `${days}d`
+}

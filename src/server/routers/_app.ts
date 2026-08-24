@@ -10,9 +10,36 @@ import { protectedProcedure, publicProcedure, router } from '../trpc'
 export const appRouter = router({
   post: router({
     feed: publicProcedure
-      .input(z.object({ scope: z.enum(['following', 'all']).default('following') }))
+      .input(
+        z.object({
+          scope: z.enum(['following', 'all', 'saved']).default('following'),
+          q: z.string().optional(),
+        }),
+      )
       .query(async ({ ctx, input }) => {
         const viewer = ctx.user
+        const q = input.q?.trim()
+        const search = q
+          ? {
+              OR: [
+                { body: { contains: q, mode: 'insensitive' as const } },
+                { author: { name: { contains: q, mode: 'insensitive' as const } } },
+                { author: { handle: { contains: q, mode: 'insensitive' as const } } },
+              ],
+            }
+          : {}
+
+        if (input.scope === 'saved') {
+          if (!viewer) return []
+          const posts = await prisma.post.findMany({
+            where: { bookmarks: { some: { userId: viewer.id } }, ...search },
+            include: postInclude,
+            orderBy: { createdAt: 'desc' },
+            take: 40,
+          })
+          return posts.map((post) => mapPost(post, viewer.id))
+        }
+
         let authorIds: string[] | undefined
         if (input.scope === 'following') {
           if (!viewer) return []
@@ -26,13 +53,39 @@ export const appRouter = router({
           )
         }
         const posts = await prisma.post.findMany({
-          where: authorIds ? { authorId: { in: authorIds } } : undefined,
+          where: {
+            ...(authorIds ? { authorId: { in: authorIds } } : {}),
+            ...search,
+          },
           include: postInclude,
           orderBy: { createdAt: 'desc' },
           take: 40,
         })
         return posts.map((post) => mapPost(post, viewer?.id))
       }),
+
+    bookmark: protectedProcedure.input(z.object({ postId: z.string() })).mutation(async ({ ctx, input }) => {
+      const existing = await prisma.bookmark.findUnique({
+        where: { userId_postId: { userId: ctx.user.id, postId: input.postId } },
+      })
+      if (existing) {
+        await prisma.bookmark.delete({ where: { id: existing.id } })
+        return { saved: false }
+      }
+      await prisma.bookmark.create({ data: { userId: ctx.user.id, postId: input.postId } })
+      return { saved: true }
+    }),
+
+    desk: protectedProcedure.query(async ({ ctx }) => {
+      const [posts, following, followers, unread, saved] = await Promise.all([
+        prisma.post.count({ where: { authorId: ctx.user.id } }),
+        prisma.follow.count({ where: { followerId: ctx.user.id } }),
+        prisma.follow.count({ where: { followingId: ctx.user.id } }),
+        prisma.notification.count({ where: { userId: ctx.user.id, read: false } }),
+        prisma.bookmark.count({ where: { userId: ctx.user.id } }),
+      ])
+      return { posts, following, followers, unread, saved }
+    }),
 
     byHandle: publicProcedure.input(z.object({ handle: z.string() })).query(async ({ ctx, input }) => {
       const profile = await prisma.user.findUnique({ where: { handle: input.handle } })
@@ -49,9 +102,15 @@ export const appRouter = router({
         include: postInclude,
         orderBy: { createdAt: 'desc' },
       })
+      const [followers, followingCount] = await Promise.all([
+        prisma.follow.count({ where: { followingId: profile.id } }),
+        prisma.follow.count({ where: { followerId: profile.id } }),
+      ])
       return {
         profile: publicUser(profile),
         following: followsYou,
+        followers,
+        followingCount,
         posts: posts.map((post) => mapPost(post, ctx.user?.id)),
       }
     }),

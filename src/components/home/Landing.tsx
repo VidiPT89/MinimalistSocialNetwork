@@ -15,7 +15,7 @@ export function Landing() {
     <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
       <div>
         <p className="display text-sm tracking-[0.32em] text-[#ff7a00]">{t.product}</p>
-        <h1 className="display mt-3 text-6xl leading-none text-[#f4e6c8] md:text-8xl">{t.brand}</h1>
+        <h1 className="display mt-3 text-6xl leading-none text-balance text-[#f4e6c8] md:text-8xl">{t.brand}</h1>
         <div className="filament my-6" />
         <p className="max-w-xl text-lg text-[#f4e6c8]/80">{t.heroLead}</p>
         <p className="mt-4 max-w-xl text-sm text-[#f4e6c8]/55">{t.demoHint}</p>
@@ -50,7 +50,7 @@ export function Landing() {
             <Link
               key={user.id}
               href={`/u/${user.handle}`}
-              className="block rounded-2xl border border-[#f4e6c8]/10 p-4 hover:border-[#ff7a00]/50"
+              className="block rounded-2xl border border-[#f4e6c8]/10 p-4 transition hover:border-[#ff7a00]/50 hover:bg-[#ff7a00]/5"
             >
               <p className="display text-2xl">{user.name}</p>
               <p className="text-sm text-[#ff7a00]">@{user.handle}</p>

@@ -17,6 +17,7 @@ const amber =
 async function main() {
   await prisma.message.deleteMany()
   await prisma.notification.deleteMany()
+  await prisma.bookmark.deleteMany()
   await prisma.comment.deleteMany()
   await prisma.like.deleteMany()
   await prisma.follow.deleteMany()
@@ -111,6 +112,8 @@ async function main() {
       { userId: ines.id, actorId: david.id, kind: 'repost', postId: second.id },
     ],
   })
+
+  await prisma.bookmark.create({ data: { userId: david.id, postId: second.id } })
 
   await prisma.message.createMany({
     data: [

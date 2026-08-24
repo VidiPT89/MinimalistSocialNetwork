@@ -21,6 +21,7 @@ export type PostCard = {
   commentCount: number
   repostCount: number
   liked: boolean
+  saved: boolean
   author: PublicUser
   original: {
     id: string
