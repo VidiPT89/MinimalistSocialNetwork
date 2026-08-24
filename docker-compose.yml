@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: fio
+      POSTGRES_PASSWORD: fio
+      POSTGRES_DB: fio
+    ports:
+      - "55437:5432"
+    volumes:
+      - fio_pg:/var/lib/postgresql/data
+
+volumes:
+  fio_pg:
