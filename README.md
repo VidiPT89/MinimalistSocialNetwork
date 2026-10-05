@@ -2,6 +2,8 @@
 
 > Bilingual social thread with text and image posts, likes, comments, reposts, a following feed, live notifications and direct messages, painted in the ividi.dev palette (black, burnt orange, amber).
 
+[![CI](https://github.com/VidiPT89/MinimalistSocialNetwork/actions/workflows/ci.yml/badge.svg)](https://github.com/VidiPT89/MinimalistSocialNetwork/actions/workflows/ci.yml)
+
 [🐞 Report Bug](https://github.com/VidiPT89/MinimalistSocialNetwork/issues) · [✨ Request Feature](https://github.com/VidiPT89/MinimalistSocialNetwork/issues)
 
 FIO is a Next.js desk for a small, sharp network: you publish a line or a picture, like and comment, repost someone else's post, and the home feed shows only the people you follow. Notifications and DMs update live. The UI is European Portuguese / English, with the language toggle remembered in `localStorage`. Live updates go through Pusher when keys are set, or Server-Sent Events on a single machine.
