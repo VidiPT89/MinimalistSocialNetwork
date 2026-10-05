@@ -3,10 +3,11 @@
 import { useLocale } from '@/i18n/LocaleProvider'
 import { useSession } from '@/i18n/SessionProvider'
 import { useFioLive } from '@/lib/live'
+import { useNow } from '@/lib/now'
 import { timeAgo } from '@/lib/social'
 import { trpc } from '@/trpc/client'
 import { useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 export function MessagesDesk() {
   const { t, locale } = useLocale()
@@ -14,16 +15,19 @@ export function MessagesDesk() {
   const withHandle = useSearchParams().get('with')
   const inbox = trpc.message.inbox.useQuery(undefined, { enabled: Boolean(data.user) })
   const people = trpc.follow.people.useQuery()
-  const [peerId, setPeerId] = useState<string | null>(null)
+  const now = useNow()
+  // A ?with=handle link opens that conversation; a peer picked in the list wins over the link.
+  const [chosenPeer, setChosenPeer] = useState<string | null>(null)
+  const [seenHandle, setSeenHandle] = useState(withHandle)
+  if (seenHandle !== withHandle) {
+    setSeenHandle(withHandle)
+    setChosenPeer(null)
+  }
+  const linkedPeer = withHandle ? (people.data?.find((item) => item.handle === withHandle)?.id ?? null) : null
+  const peerId = chosenPeer ?? linkedPeer
   const thread = trpc.message.thread.useQuery({ peerId: peerId || '' }, { enabled: Boolean(peerId) })
   const send = trpc.message.send.useMutation()
   const [body, setBody] = useState('')
-
-  useEffect(() => {
-    if (!withHandle) return
-    const peer = people.data?.find((item) => item.handle === withHandle)
-    if (peer) setPeerId(peer.id)
-  }, [withHandle, people.data])
 
   const refresh = useCallback(() => {
     void inbox.refetch()
@@ -56,7 +60,7 @@ export function MessagesDesk() {
                 className={`w-full rounded-2xl border px-3 py-2 text-left ${
                   peerId === item.peer.id ? 'border-[#ff7a00] bg-[#ff7a00]/10' : 'border-[#f4e6c8]/10'
                 }`}
-                onClick={() => setPeerId(item.peer.id)}
+                onClick={() => setChosenPeer(item.peer.id)}
               >
                 <p className="display text-lg">{item.peer.name}</p>
                 <p className="truncate text-xs text-[#f4e6c8]/55">{item.preview}</p>
@@ -76,7 +80,7 @@ export function MessagesDesk() {
                   <span className={`inline-block max-w-[80%] rounded-2xl px-3 py-2 ${line.mine ? 'bg-[#ff7a00] text-black' : 'bg-black/60'}`}>
                     {line.body}
                   </span>
-                  <p className="mt-1 text-[11px] text-[#f4e6c8]/40">{timeAgo(line.createdAt, Date.now(), locale)}</p>
+                  <p className="mt-1 text-[11px] text-[#f4e6c8]/40">{timeAgo(line.createdAt, now, locale)}</p>
                 </li>
               ))}
             </ul>

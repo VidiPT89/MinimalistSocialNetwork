@@ -1,6 +1,7 @@
 'use client'
 
 import { useLocale } from '@/i18n/LocaleProvider'
+import { useNow } from '@/lib/now'
 import { timeAgo } from '@/lib/social'
 import type { PostCard as Card } from '@/lib/types'
 import { trpc } from '@/trpc/client'
@@ -10,6 +11,7 @@ import { useState } from 'react'
 
 export function PostCard({ post, onChange }: { post: Card; onChange: () => void }) {
   const { t, locale } = useLocale()
+  const now = useNow()
   const like = trpc.post.like.useMutation()
   const comment = trpc.post.comment.useMutation()
   const repost = trpc.post.repost.useMutation()
@@ -57,7 +59,7 @@ export function PostCard({ post, onChange }: { post: Card; onChange: () => void 
           {shown.author.name}
         </Link>
         <span className="text-xs text-[#f4e6c8]/45">
-          @{shown.author.handle} · {timeAgo(post.createdAt, Date.now(), locale)}
+          @{shown.author.handle} · {timeAgo(post.createdAt, now, locale)}
         </span>
       </div>
       {shown.body ? <p className="mt-3 max-w-prose whitespace-pre-wrap text-[#f4e6c8]/85">{shown.body}</p> : null}
